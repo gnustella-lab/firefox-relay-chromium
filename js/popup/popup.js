@@ -1475,7 +1475,9 @@
         // Dismiss the browserActionBadge only when it exists
         if (browserActionBadgesClicked === false) {
           browser.storage.local.set({ browserActionBadgesClicked: true });
-          browser.browserAction.setBadgeBackgroundColor({ color: null });
+          // COMPATIBILITY NOTE: Chrome rejects `setBadgeBackgroundColor({ color: null })`
+          // (color is required). Clearing the badge text already hides the badge, and the
+          // color is re-applied before the badge is shown again in the background script.
           browser.browserAction.setBadgeText({ text: "" });
         }
       },

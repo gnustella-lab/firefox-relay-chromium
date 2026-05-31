@@ -502,8 +502,12 @@ async function displayBrowserActionBadge() {
 }
 
 // NOTE: (#545) When using `browser.runtime.sendMessage` as an async function - you must return a response or the message will timeout/fail
-browser.runtime.onMessage.addListener((m, sender, sendResponse) => {
-  (async () => {
+// COMPATIBILITY NOTE: Returning the listener's Promise is the cross-browser way to
+// reply (the webextension-polyfill handles it). Using sendResponse + `return true`
+// throws "message channel closed before a response was received" in Chrome whenever
+// a branch produces no response.
+browser.runtime.onMessage.addListener((m, sender) => {
+  return (async () => {
     let response = null;
 
     const { RELAY_SITE_ORIGIN } = await browser.storage.local.get("RELAY_SITE_ORIGIN");
@@ -565,12 +569,8 @@ browser.runtime.onMessage.addListener((m, sender, sendResponse) => {
         break;
     }
     
-    if (response) {
-      sendResponse(response);
-    }
+    return response;
   })();
-
-  return true;
 });
 
 (async () => {
